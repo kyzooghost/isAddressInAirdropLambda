@@ -32,7 +32,11 @@ Example
 Run functions locally and invoke them with the `sam local invoke` command.
 
 ```bash
-my-application$ sam local invoke helloFromLambdaFunction --no-event
+sam local invoke --no-event
+```
+
+```bash
+sam local invoke -e events/sample_event.json
 ```
 
 # Logging

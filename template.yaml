@@ -44,7 +44,3 @@ Resources:
           - "*"
         MaxAge: 300
       TargetFunctionArn: !Ref isAddressInAirdropFunction
-
-Outputs:
-  lambdaFunctionURL:
-    Value: !Ref isAddressInAirdropFunctionURL
