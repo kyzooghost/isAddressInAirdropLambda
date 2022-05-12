@@ -2,7 +2,7 @@
 
 Build and deploy the Lambda function
 
-Obtain function URL
+Obtain function URL - `aws lambda get-function-url-config --function-name isAddressInAirdropFunction`
 
 HTTP GET request to function URL, with query param `address = ...`
 
