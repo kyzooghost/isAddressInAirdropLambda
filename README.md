@@ -1,7 +1,9 @@
 # Intended Use
 
 Build and deploy the Lambda function
+
 Obtain function URL
+
 HTTP GET request to function URL, with query param `address = ...`
 
 Example
