@@ -1,0 +1,50 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  isAddressInAirdrop - Takes address, returns true if address in airdrop and false otherwise
+
+Transform:
+- AWS::Serverless-2016-10-31
+
+Resources:
+  isAddressInAirdropFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/index.airdropAddressHandler
+      Runtime: nodejs14.x
+      FunctionName: isAddressInAirdropFunction
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: A Lambda function takes an Ethereum address, returns true if address in airdrop and false otherwise
+      Policies:
+        - AWSLambdaBasicExecutionRole
+
+  isAddressInAirdropFunctionPermissions:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref isAddressInAirdropFunction
+      Action: lambda:InvokeFunctionUrl
+      Principal: "*"
+      FunctionUrlAuthType: NONE
+
+  isAddressInAirdropFunctionURL:
+    Type: AWS::Lambda::Url
+    Properties: 
+      AuthType: NONE
+      Cors:
+        AllowCredentials: TRUE
+        AllowMethods: 
+          - "*"
+        AllowOrigins: 
+          - "*"
+        AllowHeaders: 
+          - "*"
+        ExposeHeaders: 
+          - "*"
+        MaxAge: 300
+      TargetFunctionArn: !Ref isAddressInAirdropFunction
+
+Outputs:
+  lambdaFunctionURL:
+    Value: !Ref isAddressInAirdropFunctionURL
