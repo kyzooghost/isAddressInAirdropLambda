@@ -2,7 +2,6 @@ SAM source code for AWS endpoints to assist SOLACE airdrop frontend
 
 # Usage Instructions
 
-
 ## API Endpoints
 
 For given address, get airdrop points
@@ -21,6 +20,7 @@ curl <AWS_ENDPOINT>/xslocks/0xCBe416312599816b9f897AfC6DDF69C9127bB2D0
 # [{"chainId":"137","xslockID":"256","amount":"9216418705163574941","end":"1650273249","multiplier":1},{"chainId":"137","xslockID":"257","amount":"20000000000000000000","end":"1775811567","multiplier":8.629703589626587}]
 ```
 
+---
 
 # Dev Instructions
 
@@ -45,8 +45,11 @@ aws s3 rb s3://xs-lock-cache --force
 aws cloudformation delete-stack --stack-name sam-app
 ```
 
+---
 
 # Architecture
+
+## AWS Lambda Functions
 
 isAddressInAirdropFunction
 - Invoked via HTTP GET request, via `/airdrop/{address}` path
