@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: >-
-  isAddressInAirdrop - Takes address, returns true if address in airdrop and false otherwise
+  Contains isAddressInAirdropFunction, refreshXSLockCache and getXSLocks lambdas
 
 Transform:
 - AWS::Serverless-2016-10-31
@@ -9,7 +9,7 @@ Resources:
   isAddressInAirdropFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: src/handlers/index.airdropAddressHandler
+      Handler: src/handlers/isAddressInAirdrop/index.isAddressInAirdropHandler
       Runtime: nodejs14.x
       FunctionName: isAddressInAirdropFunction
       Architectures:
@@ -19,28 +19,68 @@ Resources:
       Description: A Lambda function takes an Ethereum address, returns true if address in airdrop and false otherwise
       Policies:
         - AWSLambdaBasicExecutionRole
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /airdrop/{address}
+            Method: GET
 
-  isAddressInAirdropFunctionPermissions:
-    Type: AWS::Lambda::Permission
+  xsLockCache:
+    Type: AWS::S3::Bucket
     Properties:
-      FunctionName: !Ref isAddressInAirdropFunction
-      Action: lambda:InvokeFunctionUrl
-      Principal: "*"
-      FunctionUrlAuthType: NONE
+      BucketName: xs-lock-cache
 
-  isAddressInAirdropFunctionURL:
-    Type: AWS::Lambda::Url
-    Properties: 
-      AuthType: NONE
-      Cors:
-        AllowCredentials: TRUE
-        AllowMethods: 
-          - "*"
-        AllowOrigins: 
-          - "*"
-        AllowHeaders: 
-          - "*"
-        ExposeHeaders: 
-          - "*"
-        MaxAge: 300
-      TargetFunctionArn: !Ref isAddressInAirdropFunction
+  refreshXSLockCache:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/xsLockCache/refreshXSLockCache.refreshXSLockCacheHandler
+      Runtime: nodejs14.x
+      FunctionName: refreshXSLockCache
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: A Lambda function which refreshes the xsLock cache
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref xsLockCache
+      Environment:
+        Variables:
+          BUCKET: !Ref xsLockCache
+          BUCKET_KEY: xsLockersCache.json
+      Events:
+        InvocationLevel:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0/3 * * * ? *)
+
+  getXSLock:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/xsLockCache/getXSLocks.getXSLocksHandler
+      Runtime: nodejs14.x
+      FunctionName: getXSLocks
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: A Lambda function which gets the xsLocks for an address
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Ref xsLockCache
+      Environment:
+        Variables:
+          BUCKET: !Ref xsLockCache
+          BUCKET_KEY: xsLockersCache.json
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /xslocks/{address}
+            Method: GET
+
+Outputs:
+  WebEndpoint:
+    Description: "API Gateway endpoint URL for Prod stage for isAddressInAirdrop lambda"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
