@@ -32,6 +32,7 @@ curl <AWS_ENDPOINT>/xslocks/0xCBe416312599816b9f897AfC6DDF69C9127bB2D0
 ## Quick Start
 
 `sam build` => Build application
+
 `sam deploy --guided` => Deploy application onto AWS
 
 ## Logging
@@ -54,12 +55,12 @@ aws cloudformation delete-stack --stack-name sam-app
 isAddressInAirdropFunction
 - Invoked via HTTP GET request, via `/airdrop/{address}` path
 - Lambda function bundled with airdrop_data.json in same directory
-- Lambda function retrives entry for address in airdrop_data.json
+- Lambda function retrieves entry for address in airdrop_data.json
 - Could not bundle .json into SAM build with Typescript
 
 getXSLock
 - Invoked via HTTP GET request, via `/xslocks/{address}` path
-- Lambda function takes `address` parameter, retrives cache of xsLockers from `xsLockCache` S3 bucket, and retrives xsLocks of given address
+- Lambda function takes `address` parameter, retrieves cache of xsLockers from `xsLockCache` S3 bucket, and retrieves xsLocks of given address
 
 refreshXSLockCache
 - Cronjob set to run every 3-minutes. Queries Solace API endpoint and stores response in `xsLockCache` S3 bucket as a cache
