@@ -9,7 +9,14 @@ For given address, get lockdrop data
 ```bash
 curl <AWS_ENDPOINT>/0xCBe416312599816b9f897AfC6DDF69C9127bB2D0
 
-# {"airdrop_points":192.93096916906418,"xsLocks":[{"chainId":"137","xslockID":"256","amount":"9216418705163574941","end":"1650273249","multiplier":1},{"chainId":"137","xslockID":"257","amount":"20000000000000000000","end":"1775811567","multiplier":8.629703589626587}],"lockdrop_choice":[]}
+# {
+#   "airdrop_points":192.93096916906418, /
+#   "xsLocks":[
+#       {"chainId":"137","xslockID":"256","amount":"9216418705163574941","end":"1650273249","multiplier":1},
+#       {"chainId":"137","xslockID":"257","amount":"20000000000000000000","end":"1775811567","multiplier":8.629703589626587}
+#   ],
+#   "lockdrop_choice":[{"chainId":"1","multipliedAirdropPoints":"100000","lockId":"1","multiplier":"2.1"}]
+# }
 ```
 
 Create or edit {ethAddress, lockId, chainId, multiplier, multipliedAirdropPoints} record in DynamoDB table
