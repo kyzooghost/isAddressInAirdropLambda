@@ -14,12 +14,6 @@ curl <AWS_ENDPOINT>/0xCBe416312599816b9f897AfC6DDF69C9127bB2D0
 
 Create or edit {ethAddress, lockId, chainId, multiplier, multipliedAirdropPoints} record in DynamoDB table
 
-            ethAddress: ethAddress, 
-            lockId: lockId, 
-            chainId: chainId,
-            multiplier: multiplier,
-            multipliedAirdropPoints: multipliedAirdropPoints
-
 ```bash
 curl -d '{"ethAddress":"0xCBe416312599816b9f897AfC6DDF69C9127bB2D0", "lockId":"1", "chainId":"1", "multiplier": "2.1", "multipliedAirdropPoints": "200000"}' -H "Content-Type: application/json" -X POST <AWS_ENDPOINT>
 ```
@@ -75,13 +69,16 @@ getLockdropDataFunction
 - If entry present, retrive xsLocks of given address from xsLockers cache in `xsLockCache` S3 bucket
 - If entry present, also retrive current lockdrop choice from DynamoDB table
 
+
 getAllItemsFunction
 - Invoked via HTTP GET request
 - Obtain all entries in DynamoDB table of lockdrop entries
 
+
 deleteByEthAddressFunction
 - Invoked via HTTP DELETE request to via `/{address}` path
 - Deletes corresponding DynamoDB entry
+
 
 InsertLockdropChoiceFunction
 - Invoked via HTTP POST request
@@ -96,6 +93,7 @@ InsertLockdropChoiceFunction
 }
 ```
 
+
 refreshXSLockCache
 - Cronjob set to run every 3-minutes. Queries Solace API endpoint and stores response in `xsLockCache` S3 bucket as a cache
 
@@ -103,6 +101,7 @@ refreshXSLockCache
 
 xsLockCache
 - S3 bucket containing xsLockersCache
+
 
 LockdropTable
 - DynamoDB table containing user lockdrop choices
