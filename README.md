@@ -4,20 +4,36 @@ SAM source code for AWS endpoints to assist SOLACE airdrop frontend
 
 ## API Endpoints
 
-For given address, get airdrop points
+For given address, get lockdrop data
 
 ```bash
-curl <AWS_ENDPOINT>/airdrop/0xCBe416312599816b9f897AfC6DDF69C9127bB2D0
+curl <AWS_ENDPOINT>/0xCBe416312599816b9f897AfC6DDF69C9127bB2D0
 
-# {"stakingReward":33.368511768971274,"policyWeight":0,"liquidityProviderRewards":1.304753037912153,"airdropPoints":192.93096916906418,"airdropPointsProportion":0.00029333637709662806}
+# {"airdrop_points":192.93096916906418,"xsLocks":[{"chainId":"137","xslockID":"256","amount":"9216418705163574941","end":"1650273249","multiplier":1},{"chainId":"137","xslockID":"257","amount":"20000000000000000000","end":"1775811567","multiplier":8.629703589626587}],"lockdrop_choice":[]}
 ```
 
-For given address, get xsLocks
+Create or edit {ethAddress, lockId, chainId, multiplier, multipliedAirdropPoints} record in DynamoDB table
+
+            ethAddress: ethAddress, 
+            lockId: lockId, 
+            chainId: chainId,
+            multiplier: multiplier,
+            multipliedAirdropPoints: multipliedAirdropPoints
 
 ```bash
-curl <AWS_ENDPOINT>/xslocks/0xCBe416312599816b9f897AfC6DDF69C9127bB2D0
+curl -d '{"ethAddress":"0xCBe416312599816b9f897AfC6DDF69C9127bB2D0", "lockId":"1", "chainId":"1", "multiplier": "2.1", "multipliedAirdropPoints": "200000"}' -H "Content-Type: application/json" -X POST <AWS_ENDPOINT>
+```
 
-# [{"chainId":"137","xslockID":"256","amount":"9216418705163574941","end":"1650273249","multiplier":1},{"chainId":"137","xslockID":"257","amount":"20000000000000000000","end":"1775811567","multiplier":8.629703589626587}]
+Delete a single DynamoDB table entry using primary key `ethAddress`
+
+```bash
+curl -X DELETE <AWS_ENDPOINT>/0xCBe416312599816b9f897AfC6DDF69C9127bB2D0
+```
+
+View all lockdrop choices stored in DynamoDB table
+
+```bash
+curl <AWS_ENDPOINT>
 ```
 
 ---
@@ -37,7 +53,7 @@ curl <AWS_ENDPOINT>/xslocks/0xCBe416312599816b9f897AfC6DDF69C9127bB2D0
 
 ## Logging
 
-`aws logs tail /aws/lambda/getXSLocks`
+`aws logs tail <LOG_GROUP>`
 
 ## Cleanup
 
@@ -52,22 +68,41 @@ aws cloudformation delete-stack --stack-name sam-app
 
 ## AWS Lambda Functions
 
-isAddressInAirdropFunction
-- Invoked via HTTP GET request, via `/airdrop/{address}` path
-- Lambda function bundled with airdrop_data.json in same directory
+getLockdropDataFunction
+- Invoked via HTTP GET request via `/{address}` path
+- Bundled with airdrop_data.json in same directory. Wanted to write in Typescript but could not bundle .json into SAM build with Typescript
 - Lambda function retrieves entry for address in airdrop_data.json
-- Could not bundle .json into SAM build with Typescript
+- If entry present, retrive xsLocks of given address from xsLockers cache in `xsLockCache` S3 bucket
+- If entry present, also retrive current lockdrop choice from DynamoDB table
 
-getXSLock
-- Invoked via HTTP GET request, via `/xslocks/{address}` path
-- Lambda function takes `address` parameter, retrieves cache of xsLockers from `xsLockCache` S3 bucket, and retrieves xsLocks of given address
+getAllItemsFunction
+- Invoked via HTTP GET request
+- Obtain all entries in DynamoDB table of lockdrop entries
+
+deleteByEthAddressFunction
+- Invoked via HTTP DELETE request to via `/{address}` path
+- Deletes corresponding DynamoDB entry
+
+InsertLockdropChoiceFunction
+- Invoked via HTTP POST request
+- Creates or edits DynamoDB entry, POST request must include the following fields
+```js
+{
+    ethAddress,
+    lockId,
+    chainId,
+    multiplier,
+    multipliedAirdropPoints
+}
+```
 
 refreshXSLockCache
 - Cronjob set to run every 3-minutes. Queries Solace API endpoint and stores response in `xsLockCache` S3 bucket as a cache
 
-## Directories
+## Other AWS Resources
 
-- `src` - Code for the application's Lambda function.
-- `events` - Invocation events that you can use to invoke the function.
-- `__tests__` - Unit tests for the application code. 
-- `template.yaml` - A template that defines the application's AWS resources.
+xsLockCache
+- S3 bucket containing xsLockersCache
+
+LockdropTable
+- DynamoDB table containing user lockdrop choices

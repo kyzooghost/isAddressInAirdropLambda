@@ -6,35 +6,128 @@ Transform:
 - AWS::Serverless-2016-10-31
 
 Resources:
-  isAddressInAirdropFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: src/handlers/isAddressInAirdrop/index.isAddressInAirdropHandler
-      Runtime: nodejs14.x
-      FunctionName: isAddressInAirdropFunction
-      Architectures:
-        - x86_64
-      MemorySize: 128
-      Timeout: 100
-      Description: A Lambda function takes an Ethereum address, returns true if address in airdrop and false otherwise
-      Policies:
-        - AWSLambdaBasicExecutionRole
-      Events:
-        Api:
-          Type: Api
-          Properties:
-            Path: /airdrop/{address}
-            Method: GET
-
   xsLockCache:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: xs-lock-cache
 
+  LockdropTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      PrimaryKey:
+        Name: ethAddress
+        Type: String
+      ProvisionedThroughput:
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
+
+  getLockdropDataFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/getLockdropData.getLockdropDataHandler
+      Runtime: nodejs14.x
+      FunctionName: getLockdropDataFunction
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: A Lambda function takes an Ethereum address, returns relevant lockdrop data
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - S3ReadPolicy:
+            BucketName: !Ref xsLockCache
+        - DynamoDBCrudPolicy:
+            TableName: !Ref LockdropTable
+      Environment:
+        Variables:
+          BUCKET: !Ref xsLockCache
+          BUCKET_KEY: xsLockersCache.json
+          TABLE: !Ref LockdropTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /{address}
+            Method: GET
+
+  getAllItemsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/get-all-items.getAllItemsHandler
+      Runtime: nodejs14.x
+      FunctionName: getAllItemsFunction
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Lambda function to get all items from DynamoDB table with {ethAddress, lockTime} entries. Invoked via HTTP GET request to API endpoint.
+      Policies:
+        # Give Create/Read/Update/Delete Permissions to the SampleTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref LockdropTable
+      Environment:
+        Variables:
+          # Make table name accessible as environment variable from function code during execution
+          TABLE: !Ref LockdropTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /
+            Method: GET
+
+  deleteByEthAddressFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/delete-item.deleteByEthAddressHandler
+      Runtime: nodejs14.x
+      FunctionName: deleteByEthAddressFunction
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Lambda function to delete a single item from DynamoDB table with {ethAddress, lockTime} entries. Invoked via HTTP DELETE request to API endpoint.
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref LockdropTable
+      Environment:
+        Variables:
+          TABLE: !Ref LockdropTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /{address}
+            Method: DELETE
+
+  InsertLockdropChoiceFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/put-item.putItemHandler
+      Runtime: nodejs14.x
+      FunctionName: InsertLockdropChoiceFunction
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Lambda function to insert a single item into a DynamoDB table with {ethAddress, lockTime} entries. Invoked via HTTP POST request to API endpoint.
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref LockdropTable
+      Environment:
+        Variables:
+          TABLE: !Ref LockdropTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /
+            Method: POST
+
   refreshXSLockCache:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: src/handlers/xsLockCache/refreshXSLockCache.refreshXSLockCacheHandler
+      Handler: src/handlers/refreshXSLockCache.refreshXSLockCacheHandler
       Runtime: nodejs14.x
       FunctionName: refreshXSLockCache
       Architectures:
@@ -54,31 +147,6 @@ Resources:
           Type: Schedule
           Properties:
             Schedule: cron(0/3 * * * ? *)
-
-  getXSLock:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: src/handlers/xsLockCache/getXSLocks.getXSLocksHandler
-      Runtime: nodejs14.x
-      FunctionName: getXSLocks
-      Architectures:
-        - x86_64
-      MemorySize: 128
-      Timeout: 100
-      Description: A Lambda function which gets the xsLocks for an address
-      Policies:
-        - S3ReadPolicy:
-            BucketName: !Ref xsLockCache
-      Environment:
-        Variables:
-          BUCKET: !Ref xsLockCache
-          BUCKET_KEY: xsLockersCache.json
-      Events:
-        Api:
-          Type: Api
-          Properties:
-            Path: /xslocks/{address}
-            Method: GET
 
 Outputs:
   WebEndpoint:
