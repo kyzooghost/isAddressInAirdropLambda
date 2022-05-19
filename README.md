@@ -15,21 +15,27 @@ curl <AWS_ENDPOINT>/0xCBe416312599816b9f897AfC6DDF69C9127bB2D0
 #       {"chainId":"137","xslockID":"256","amount":"9216418705163574941","end":"1650273249","multiplier":1},
 #       {"chainId":"137","xslockID":"257","amount":"20000000000000000000","end":"1775811567","multiplier":8.629703589626587}
 #   ],
-#   "lockdrop_choice":[{"chainId":"1","multipliedAirdropPoints":"100000","lockId":"1","multiplier":"2.1"}]
+#   "lockdrop_choice":[{"chainId":"137","multipliedAirdropPoints":"192.93096916906418","lockId":"256","multiplier":"1.0"}]
 # }
 ```
+
+<br>
 
 Create or edit {ethAddress, lockId, chainId, multiplier, multipliedAirdropPoints} record in DynamoDB table
 
 ```bash
-curl -d '{"ethAddress":"0xCBe416312599816b9f897AfC6DDF69C9127bB2D0", "lockId":"1", "chainId":"1", "multiplier": "2.1", "multipliedAirdropPoints": "200000"}' -H "Content-Type: application/json" -X POST <AWS_ENDPOINT>
+curl -d '{"ethAddress":"0xCBe416312599816b9f897AfC6DDF69C9127bB2D0", "lockId":"256", "chainId":"137", "multiplier": "1.0", "multipliedAirdropPoints": "192.93096916906418"}' -H "Content-Type: application/json" -X POST <AWS_ENDPOINT>
 ```
+
+<br>
 
 Delete a single DynamoDB table entry using primary key `ethAddress`
 
 ```bash
 curl -X DELETE <AWS_ENDPOINT>/0xCBe416312599816b9f897AfC6DDF69C9127bB2D0
 ```
+
+<br>
 
 View all lockdrop choices stored in DynamoDB table
 
@@ -76,16 +82,19 @@ getLockdropDataFunction
 - If entry present, retrive xsLocks of given address from xsLockers cache in `xsLockCache` S3 bucket
 - If entry present, also retrive current lockdrop choice from DynamoDB table
 
+<br>
 
 getAllItemsFunction
 - Invoked via HTTP GET request
 - Obtain all entries in DynamoDB table of lockdrop entries
 
+<br>
 
 deleteByEthAddressFunction
 - Invoked via HTTP DELETE request to via `/{address}` path
 - Deletes corresponding DynamoDB entry
 
+<br>
 
 InsertLockdropChoiceFunction
 - Invoked via HTTP POST request
@@ -100,6 +109,7 @@ InsertLockdropChoiceFunction
 }
 ```
 
+<br>
 
 refreshXSLockCache
 - Cronjob set to run every 3-minutes. Queries Solace API endpoint and stores response in `xsLockCache` S3 bucket as a cache
@@ -109,6 +119,7 @@ refreshXSLockCache
 xsLockCache
 - S3 bucket containing xsLockersCache
 
+<br>
 
 LockdropTable
 - DynamoDB table containing user lockdrop choices
