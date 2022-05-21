@@ -36,7 +36,7 @@ Resources:
         - AWSLambdaBasicExecutionRole
         - S3ReadPolicy:
             BucketName: !Ref xsLockCache
-        - DynamoDBCrudPolicy:
+        - DynamoDBReadPolicy:
             TableName: !Ref LockdropTable
       Environment:
         Variables:
@@ -50,56 +50,6 @@ Resources:
             Path: /{address}
             Method: GET
 
-  getAllItemsFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: src/handlers/get-all-items.getAllItemsHandler
-      Runtime: nodejs14.x
-      FunctionName: getAllItemsFunction
-      Architectures:
-        - x86_64
-      MemorySize: 128
-      Timeout: 100
-      Description: Lambda function to get all items from DynamoDB table with {ethAddress, lockTime} entries. Invoked via HTTP GET request to API endpoint.
-      Policies:
-        # Give Create/Read/Update/Delete Permissions to the SampleTable
-        - DynamoDBCrudPolicy:
-            TableName: !Ref LockdropTable
-      Environment:
-        Variables:
-          # Make table name accessible as environment variable from function code during execution
-          TABLE: !Ref LockdropTable
-      Events:
-        Api:
-          Type: Api
-          Properties:
-            Path: /
-            Method: GET
-
-  deleteByEthAddressFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: src/handlers/delete-item.deleteByEthAddressHandler
-      Runtime: nodejs14.x
-      FunctionName: deleteByEthAddressFunction
-      Architectures:
-        - x86_64
-      MemorySize: 128
-      Timeout: 100
-      Description: Lambda function to delete a single item from DynamoDB table with {ethAddress, lockTime} entries. Invoked via HTTP DELETE request to API endpoint.
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref LockdropTable
-      Environment:
-        Variables:
-          TABLE: !Ref LockdropTable
-      Events:
-        Api:
-          Type: Api
-          Properties:
-            Path: /{address}
-            Method: DELETE
-
   InsertLockdropChoiceFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -112,10 +62,14 @@ Resources:
       Timeout: 100
       Description: Lambda function to insert a single item into a DynamoDB table with {ethAddress, lockTime} entries. Invoked via HTTP POST request to API endpoint.
       Policies:
+        - S3ReadPolicy:
+            BucketName: !Ref xsLockCache
         - DynamoDBCrudPolicy:
             TableName: !Ref LockdropTable
       Environment:
         Variables:
+          BUCKET: !Ref xsLockCache
+          BUCKET_KEY: xsLockersCache.json
           TABLE: !Ref LockdropTable
       Events:
         Api:

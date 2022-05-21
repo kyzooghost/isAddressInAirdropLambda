@@ -15,32 +15,20 @@ curl <AWS_ENDPOINT>/0xCBe416312599816b9f897AfC6DDF69C9127bB2D0
 #       {"chainId":"137","xslockID":"256","amount":"9216418705163574941","end":"1650273249","multiplier":1},
 #       {"chainId":"137","xslockID":"257","amount":"20000000000000000000","end":"1775811567","multiplier":8.629703589626587}
 #   ],
-#   "lockdrop_choice":[{"chainId":"137","multipliedAirdropPoints":"192.93096916906418","lockId":"256","multiplier":"1.0"}]
+#   "lockdrop_choice":[{"option":2,"chainId":"137","multiplier":8.629703589626587,"multipliedAirdropPoints":1664.9370771884096}]
 # }
 ```
 
 <br>
 
-Create or edit {ethAddress, lockId, chainId, multiplier, multipliedAirdropPoints} record in DynamoDB table
+Create or edit {address, option} record in DynamoDB table
+
+Option = 0 => Choose direct airdrop claim
+Option = 1 => Choose first xsLock for address
+Option = n => Choose nth xsLock for address
 
 ```bash
-curl -d '{"ethAddress":"0xCBe416312599816b9f897AfC6DDF69C9127bB2D0", "lockId":"256", "chainId":"137", "multiplier": "1.0", "multipliedAirdropPoints": "192.93096916906418"}' -H "Content-Type: application/json" -X POST <AWS_ENDPOINT>
-```
-
-<br>
-
-Delete a single DynamoDB table entry using primary key `ethAddress`
-
-```bash
-curl -X DELETE <AWS_ENDPOINT>/0xCBe416312599816b9f897AfC6DDF69C9127bB2D0
-```
-
-<br>
-
-View all lockdrop choices stored in DynamoDB table
-
-```bash
-curl <AWS_ENDPOINT>
+curl -d '{"address":"0xCBe416312599816b9f897AfC6DDF69C9127bB2D0", "option":"0"}' -H "Content-Type: application/json" -X POST <AWS_ENDPOINT>
 ```
 
 ---
@@ -60,7 +48,7 @@ curl <AWS_ENDPOINT>
 
 ## Logging
 
-`aws logs tail <LOG_GROUP>`
+`aws logs tail /aws/lambda/<LAMBDA_NAME>`
 
 ## Cleanup
 
@@ -84,28 +72,13 @@ getLockdropDataFunction
 
 <br>
 
-getAllItemsFunction
-- Invoked via HTTP GET request
-- Obtain all entries in DynamoDB table of lockdrop entries
-
-<br>
-
-deleteByEthAddressFunction
-- Invoked via HTTP DELETE request to via `/{address}` path
-- Deletes corresponding DynamoDB entry
-
-<br>
-
 InsertLockdropChoiceFunction
 - Invoked via HTTP POST request
 - Creates or edits DynamoDB entry, POST request must include the following fields
 ```js
 {
-    ethAddress,
-    lockId,
-    chainId,
-    multiplier,
-    multipliedAirdropPoints
+    address,
+    option
 }
 ```
 
