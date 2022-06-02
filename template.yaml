@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: >-
-  Contains isAddressInAirdropFunction, refreshXSLockCache and getXSLocks lambdas
+  Lockdrop API
 
 Transform:
 - AWS::Serverless-2016-10-31
@@ -9,7 +9,7 @@ Resources:
   xsLockCache:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: xs-lock-cache
+      BucketName: xs-lock-cache-0
 
   LockdropTable:
     Type: AWS::Serverless::SimpleTable
