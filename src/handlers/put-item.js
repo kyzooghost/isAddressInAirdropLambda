@@ -60,7 +60,7 @@ exports.putItemHandler = async (event) => {
 
         if(option > userLocks.length) return {statusCode: 400, body: "Error: option > # of locks"}
 
-        lockId = userLocks[option - 1].lockId
+        lockId = userLocks[option - 1].xslockID
         chainId = userLocks[option - 1].chainId
         multiplier = userLocks[option - 1].multiplier
         multipliedAirdropPoints = multiplier * airdrop_points
