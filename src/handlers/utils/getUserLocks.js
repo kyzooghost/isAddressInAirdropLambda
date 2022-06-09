@@ -33,7 +33,7 @@ async function getUserLocks(address) {
         }
     */
 
-    const THRESHHOLD_TIME = 1655424000 // 00:00:00 GMT on 17 June 2022
+    const THRESHHOLD_TIME = 1654473600 // 00:00:00 GMT on 6 June 2022
     const SIX_MONTHS = 15778800
             
     for (const chainId in xsLockerData) {
@@ -42,8 +42,12 @@ async function getUserLocks(address) {
             if (address == owner) {
                 let multiplier
 
+                // If before threshhold time
                 if (parseInt(end) <= THRESHHOLD_TIME) {
                     multiplier = 1
+                // If after threshold time + 4 years
+                } else if (parseInt(end) >= THRESHHOLD_TIME + 8 * SIX_MONTHS) {
+                    multiplier = 9
                 } else {
                     const LOCK_TIME = parseInt(end) - THRESHHOLD_TIME
                     multiplier = 1 + ( LOCK_TIME / SIX_MONTHS ) // +1x multiplier, for every 6 months extra staked
