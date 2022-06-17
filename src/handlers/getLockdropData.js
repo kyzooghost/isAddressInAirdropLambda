@@ -52,12 +52,20 @@ exports.getLockdropDataHandler = async (event) => {
         airdrop_points = airdrop_points = airdrop_data[address]["airdropPoints"]
 
         // If address has locks, get xsLock data
-        if (airdrop_data[address].hasOwnProperty("stakingReward")) {
-            try { userLocks = await getUserLocks(address) }
-            catch (e) {
-                console.error(e)
-                return {statusCode: 400, body: "Error downloading from xs-lock-cache S3 bucket"}
-            }
+        // if (airdrop_data[address].hasOwnProperty("stakingReward")) {
+            // try { userLocks = await getUserLocks(address) }
+            // catch (e) {
+            //     console.error(e)
+            //     return {statusCode: 400, body: "Error downloading from xs-lock-cache S3 bucket"}
+            // }
+        // }
+
+        // Remove surrounding if-block, edge case of user without lock
+        // in snapshot, and then creating a new lock
+        try { userLocks = await getUserLocks(address) }
+        catch (e) {
+            console.error(e)
+            console.error("Error downloading from xs-lock-cache S3 bucket, item not present?")
         }
 
         // Get previous lock choices
@@ -70,7 +78,6 @@ exports.getLockdropDataHandler = async (event) => {
             const data = await docClient.get(tableParams).promise();
             const item = data.Item;
             console.info("Successful DynamoDB read")
-            console.info(item)
 
             if(item) {
                 const {option, chainId, multipliedAirdropPoints, lockId, multiplier} = item
